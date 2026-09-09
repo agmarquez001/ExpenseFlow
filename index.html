@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ExpenseFlow — Gestión de Gastos Personales</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Estilos propios -->
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+
+  <!-- ===== NAVBAR ===== -->
+  <nav class="navbar navbar-expand-lg navbar-dark sticky-top ef-navbar">
+    <div class="container-fluid px-3 px-md-4">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+        <i class="bi bi-wallet2 fs-4"></i>
+        <span class="fw-bold">ExpenseFlow</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Alternar navegación">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link active" href="#">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="#">Reportes</a></li>
+          <li class="nav-item"><a class="nav-link" href="#">Configuración</a></li>
+        </ul>
+        <span class="navbar-text d-flex align-items-center gap-2 text-white-50">
+          <i class="bi bi-person-circle fs-5"></i> Hola, Usuario
+        </span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container-fluid px-3 px-md-4 py-4">
+
+    <!-- ===== RESUMEN (TARJETAS) ===== -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="card ef-summary-card h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <p class="ef-summary-label">Total del mes</p>
+                <h4 class="ef-summary-value">$3,339.00</h4>
+              </div>
+              <span class="ef-icon-badge bg-primary-subtle text-primary"><i class="bi bi-cash-stack"></i></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card ef-summary-card h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <p class="ef-summary-label">Presupuesto total</p>
+                <h4 class="ef-summary-value">$6,800.00</h4>
+              </div>
+              <span class="ef-icon-badge bg-success-subtle text-success"><i class="bi bi-piggy-bank"></i></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card ef-summary-card h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <p class="ef-summary-label">Restante</p>
+                <h4 class="ef-summary-value text-success">$3,461.00</h4>
+              </div>
+              <span class="ef-icon-badge bg-success-subtle text-success"><i class="bi bi-graph-up-arrow"></i></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card ef-summary-card h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <p class="ef-summary-label">Promedio diario</p>
+                <h4 class="ef-summary-value">$333.90</h4>
+              </div>
+              <span class="ef-icon-badge bg-warning-subtle text-warning"><i class="bi bi-calendar3"></i></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+
+      <!-- ===== COLUMNA IZQUIERDA: FORMULARIO + PRESUPUESTOS ===== -->
+      <div class="col-12 col-lg-4">
+
+        <!-- RF-1 / RF-2: Formulario nuevo gasto -->
+        <div class="card mb-4">
+          <div class="card-header ef-card-header">
+            <i class="bi bi-plus-circle me-2"></i>Nuevo Gasto
+          </div>
+          <div class="card-body">
+            <form id="expenseForm" novalidate>
+              <div class="mb-3">
+                <label for="expDesc" class="form-label">Descripción</label>
+                <input type="text" class="form-control" id="expDesc" placeholder="Ej. Supermercado" required>
+              </div>
+              <div class="mb-3">
+                <label for="expAmount" class="form-label">Monto</label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" class="form-control" id="expAmount" placeholder="0.00" min="0" step="0.01" required>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="expCategory" class="form-label">Categoría</label>
+                <select class="form-select" id="expCategory" required>
+                  <option value="Comida" selected>🍔 Comida</option>
+                  <option value="Transporte">🚌 Transporte</option>
+                  <option value="Ocio">🎬 Ocio</option>
+                  <option value="Salud">💊 Salud</option>
+                  <option value="Otros">📦 Otros</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="expDate" class="form-label">Fecha</label>
+                <input type="date" class="form-control" id="expDate" value="2026-09-08" required>
+              </div>
+              <button type="submit" class="btn ef-btn-primary w-100">
+                <i class="bi bi-check-circle me-1"></i> Agregar Gasto
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- RF-8: Indicadores de presupuesto por categoría -->
+        <div class="card">
+          <div class="card-header ef-card-header">
+            <i class="bi bi-pie-chart me-2"></i>Presupuesto por Categoría
+          </div>
+          <div class="card-body">
+
+            <div class="mb-3">
+              <div class="d-flex justify-content-between small mb-1">
+                <span><i class="bi bi-circle-fill ef-dot" style="color:#FF9800"></i> Comida</span>
+                <span class="text-muted">$1,365 / $3,000</span>
+              </div>
+              <div class="progress" role="progressbar" aria-label="Presupuesto Comida" aria-valuenow="46" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar" style="width:46%; background-color:#FF9800"></div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <div class="d-flex justify-content-between small mb-1">
+                <span><i class="bi bi-circle-fill ef-dot" style="color:#2196F3"></i> Transporte</span>
+                <span class="text-muted">$720 / $1,500</span>
+              </div>
+              <div class="progress" role="progressbar" aria-label="Presupuesto Transporte" aria-valuenow="48" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar" style="width:48%; background-color:#2196F3"></div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <div class="d-flex justify-content-between small mb-1">
+                <span><i class="bi bi-circle-fill ef-dot" style="color:#9C27B0"></i> Ocio</span>
+                <span class="text-muted">$479 / $1,000</span>
+              </div>
+              <div class="progress" role="progressbar" aria-label="Presupuesto Ocio" aria-valuenow="48" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar" style="width:48%; background-color:#9C27B0"></div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <div class="d-flex justify-content-between small mb-1">
+                <span><i class="bi bi-circle-fill ef-dot" style="color:#F44336"></i> Salud</span>
+                <span class="text-danger fw-semibold">$680 / $800 ⚠</span>
+              </div>
+              <div class="progress" role="progressbar" aria-label="Presupuesto Salud" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar bg-danger" style="width:85%"></div>
+              </div>
+            </div>
+
+            <div class="mb-0">
+              <div class="d-flex justify-content-between small mb-1">
+                <span><i class="bi bi-circle-fill ef-dot" style="color:#607D8B"></i> Otros</span>
+                <span class="text-muted">$95 / $500</span>
+              </div>
+              <div class="progress" role="progressbar" aria-label="Presupuesto Otros" aria-valuenow="19" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar" style="width:19%; background-color:#607D8B"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== COLUMNA DERECHA: FILTROS + LISTA + GRÁFICAS ===== -->
+      <div class="col-12 col-lg-8">
+
+        <!-- RF-3 / RF-4 / RF-5: Lista de gastos -->
+        <div class="card mb-4">
+          <div class="card-header ef-card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <span><i class="bi bi-list-ul me-2"></i>Mis Gastos</span>
+            <div class="btn-group btn-group-sm" role="group" aria-label="Filtro de estado" id="statusFilter">
+              <button type="button" class="btn btn-outline-light active" data-filter="todas">Todas</button>
+              <button type="button" class="btn btn-outline-light" data-filter="completada">Completadas</button>
+              <button type="button" class="btn btn-outline-light" data-filter="pendiente">Pendientes</button>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0" id="expenseTable">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Descripción</th>
+                    <th class="d-none d-md-table-cell">Categoría</th>
+                    <th>Monto</th>
+                    <th class="d-none d-sm-table-cell">Estado</th>
+                    <th class="text-end">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr data-status="completada" data-id="1" data-desc="Supermercado semanal" data-amount="850.00" data-category="Comida" data-date="2026-09-08">
+                    <td>08/09/2026</td>
+                    <td>Supermercado semanal</td>
+                    <td class="d-none d-md-table-cell"><span class="badge ef-badge-comida">🍔 Comida</span></td>
+                    <td class="fw-semibold">$850.00</td>
+                    <td class="d-none d-sm-table-cell"><span class="badge bg-success-subtle text-success">Completada</span></td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-outline-primary ef-action-btn" data-bs-toggle="modal" data-bs-target="#editModal" title="Editar"><i class="bi bi-pencil"></i></button>
+                      <button class="btn btn-sm btn-outline-danger ef-action-btn" data-bs-toggle="modal" data-bs-target="#deleteModal" title="Eliminar"><i class="bi bi-trash"></i></button>
+                    </td>
+                  </tr>
+                  <tr data-status="completada" data-id="2" data-desc="Uber al trabajo" data-amount="120.00" data-category="Transporte" data-date="2026-09-07">
+                    <td>07/09/2026</td>
+                    <td>Uber al trabajo</td>
+                    <td class="d-none d-md-table-cell"><span class="badge ef-badge-transporte">🚌 Transporte</span></td>
+                    <td class="fw-semibold">$120.00</td>
+                    <td class="d-none d-sm-table-cell"><span class="badge bg-success-subtle text-success">Completada</span></td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-outline-primary ef-action-btn" data-bs-toggle="modal" data-bs-target="#editModal" title="Editar"><i class="bi bi-pencil"></i></button>
+                      <button class="btn btn-sm btn-outline-danger ef-action-btn" data-bs-toggle="modal" data-bs-target="#deleteModal" title="Eliminar"><i class="bi bi-trash"></i></button>
+                    </td>
+                  </tr>
+                  <tr data-status="completada" data-id="3" data-desc="Cine con amigos" data-amount="280.00" data-category="Ocio" data-date="2026-09-07">
+                    <td>07/09/2026</td>
+                    <td>Cine con amigos</td>
+                    <td class="d-none d-md-table-cell"><span class="badge ef-badge-ocio">🎬 Ocio</span></td>
+                    <td class="fw-semibold">$280.00</td>
+                    <td class="d-none d-sm-table-cell"><span class="badge bg-success-subtle text-success">Completada</span></td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-outline-primary ef-action-btn" data-bs-toggle="modal" data-bs-target="#editModal" title="Editar"><i class="bi bi-pencil"></i></button>
+                      <button class="btn btn-sm btn-outline-danger ef-action-btn" data-bs-toggle="modal" data-bs-target="#deleteModal" title="Eliminar"><i class="bi bi-trash"></i></button>
+                    </td>
+                  </tr>
+                  <tr data-status="pendiente" data-id="4" data-desc="Consulta médica" data-amount="500.00" data-category="Salud" data-date="2026-09-06">
+                    <td>06/09/2026</td>
+                    <td>Consulta médica</td>
+                    <td class="d-none d-md-table-cell"><span class="badge ef-badge-salud">💊 Salud</span></td>
+                    <td class="fw-semibold">$500.00</td>
+                    <td class="d-none d-sm-table-cell"><span class="badge bg-warning-subtle text-warning">Pendiente</span></td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-outline-primary ef-action-btn" data-bs-toggle="modal" data-bs-target="#editModal" title="Editar"><i class="bi bi-pencil"></i></button>
+                      <button class="btn btn-sm btn-outline-danger ef-action-btn" data-bs-toggle="modal" data-bs-target="#deleteModal" title="Eliminar"><i class="bi bi-trash"></i></button>
+                    </td>
+                  </tr>
+                  <tr data-status="completada" data-id="5" data-desc="Gasolina" data-amount="600.00" data-category="Transporte" data-date="2026-09-05">
+                    <td>05/09/2026</td>
+                    <td>Gasolina</td>
+                    <td class="d-none d-md-table-cell"><span class="badge ef-badge-transporte">🚌 Transporte</span></td>
+                    <td class="fw-semibold">$600.00</td>
+                    <td class="d-none d-sm-table-cell"><span class="badge bg-success-subtle text-success">Completada</span></td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-outline-primary ef-action-btn" data-bs-toggle="modal" data-bs-target="#editModal" title="Editar"><i class="bi bi-pencil"></i></button>
+                      <button class="btn btn-sm btn-outline-danger ef-action-btn" data-bs-toggle="modal" data-bs-target="#deleteModal" title="Eliminar"><i class="bi bi-trash"></i></button>
+                    </td>
+                  </tr>
+                  <tr data-status="completada" data-id="6" data-desc="Restaurante" data-amount="450.00" data-category="Comida" data-date="2026-09-04">
+                    <td>04/09/2026</td>
+                    <td>Restaurante</td>
+                    <td class="d-none d-md-table-cell"><span class="badge ef-badge-comida">🍔 Comida</span></td>
+                    <td class="fw-semibold">$450.00</td>
+                    <td class="d-none d-sm-table-cell"><span class="badge bg-success-subtle text-success">Completada</span></td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-outline-primary ef-action-btn" data-bs-toggle="modal" data-bs-target="#editModal" title="Editar"><i class="bi bi-pencil"></i></button>
+                      <button class="btn btn-sm btn-outline-danger ef-action-btn" data-bs-toggle="modal" data-bs-target="#deleteModal" title="Eliminar"><i class="bi bi-trash"></i></button>
+                    </td>
+                  </tr>
+                  <tr data-status="completada" data-id="7" data-desc="Suscripción streaming" data-amount="199.00" data-category="Ocio" data-date="2026-09-03">
+                    <td>03/09/2026</td>
+                    <td>Suscripción streaming</td>
+                    <td class="d-none d-md-table-cell"><span class="badge ef-badge-ocio">🎬 Ocio</span></td>
+                    <td class="fw-semibold">$199.00</td>
+                    <td class="d-none d-sm-table-cell"><span class="badge bg-success-subtle text-success">Completada</span></td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-outline-primary ef-action-btn" data-bs-toggle="modal" data-bs-target="#editModal" title="Editar"><i class="bi bi-pencil"></i></button>
+                      <button class="btn btn-sm btn-outline-danger ef-action-btn" data-bs-toggle="modal" data-bs-target="#deleteModal" title="Eliminar"><i class="bi bi-trash"></i></button>
+                    </td>
+                  </tr>
+                  <tr data-status="pendiente" data-id="8" data-desc="Farmacia" data-amount="180.00" data-category="Salud" data-date="2026-09-02">
+                    <td>02/09/2026</td>
+                    <td>Farmacia</td>
+                    <td class="d-none d-md-table-cell"><span class="badge ef-badge-salud">💊 Salud</span></td>
+                    <td class="fw-semibold">$180.00</td>
+                    <td class="d-none d-sm-table-cell"><span class="badge bg-warning-subtle text-warning">Pendiente</span></td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-outline-primary ef-action-btn" data-bs-toggle="modal" data-bs-target="#editModal" title="Editar"><i class="bi bi-pencil"></i></button>
+                      <button class="btn btn-sm btn-outline-danger ef-action-btn" data-bs-toggle="modal" data-bs-target="#deleteModal" title="Eliminar"><i class="bi bi-trash"></i></button>
+                    </td>
+                  </tr>
+                  <tr data-status="completada" data-id="9" data-desc="Papelería oficina" data-amount="95.00" data-category="Otros" data-date="2026-09-01">
+                    <td>01/09/2026</td>
+                    <td>Papelería oficina</td>
+                    <td class="d-none d-md-table-cell"><span class="badge ef-badge-otros">📦 Otros</span></td>
+                    <td class="fw-semibold">$95.00</td>
+                    <td class="d-none d-sm-table-cell"><span class="badge bg-success-subtle text-success">Completada</span></td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-outline-primary ef-action-btn" data-bs-toggle="modal" data-bs-target="#editModal" title="Editar"><i class="bi bi-pencil"></i></button>
+                      <button class="btn btn-sm btn-outline-danger ef-action-btn" data-bs-toggle="modal" data-bs-target="#deleteModal" title="Eliminar"><i class="bi bi-trash"></i></button>
+                    </td>
+                  </tr>
+                  <tr data-status="completada" data-id="10" data-desc="Café" data-amount="65.00" data-category="Comida" data-date="2026-08-31">
+                    <td>31/08/2026</td>
+                    <td>Café</td>
+                    <td class="d-none d-md-table-cell"><span class="badge ef-badge-comida">🍔 Comida</span></td>
+                    <td class="fw-semibold">$65.00</td>
+                    <td class="d-none d-sm-table-cell"><span class="badge bg-success-subtle text-success">Completada</span></td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-outline-primary ef-action-btn" data-bs-toggle="modal" data-bs-target="#editModal" title="Editar"><i class="bi bi-pencil"></i></button>
+                      <button class="btn btn-sm btn-outline-danger ef-action-btn" data-bs-toggle="modal" data-bs-target="#deleteModal" title="Eliminar"><i class="bi bi-trash"></i></button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="text-muted text-center small py-3 mb-0 d-none" id="emptyState">
+              <i class="bi bi-inbox fs-4 d-block mb-1"></i>No hay gastos que coincidan con este filtro.
+            </p>
+          </div>
+        </div>
+
+        <!-- RF-6 / RF-7: Gráficas -->
+        <div class="row g-4">
+          <div class="col-12 col-md-6">
+            <div class="card h-100">
+              <div class="card-header ef-card-header">
+                <i class="bi bi-pie-chart-fill me-2"></i>Gastos por Categoría
+              </div>
+              <div class="card-body">
+                <div class="ef-chart-container">
+                  <canvas id="categoryChart" aria-label="Gráfica circular de gastos por categoría" role="img"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div class="card h-100">
+              <div class="card-header ef-card-header">
+                <i class="bi bi-bar-chart-fill me-2"></i>Gastos por Día
+              </div>
+              <div class="card-body">
+                <div class="ef-chart-container">
+                  <canvas id="dailyChart" aria-label="Gráfica de barras de gastos por día" role="img"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="text-center text-muted small py-4">
+    ExpenseFlow &mdash; Fase 2: Maquetación &middot; Datos de ejemplo, sin conexión a API
+  </footer>
+
+  <!-- ===== MODAL: EDITAR GASTO (RF-4) ===== -->
+  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header ef-card-header">
+          <h5 class="modal-title" id="editModalLabel"><i class="bi bi-pencil-square me-2"></i>Editar Gasto</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <form id="editForm">
+            <div class="mb-3">
+              <label for="editDesc" class="form-label">Descripción</label>
+              <input type="text" class="form-control" id="editDesc">
+            </div>
+            <div class="mb-3">
+              <label for="editAmount" class="form-label">Monto</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" class="form-control" id="editAmount" min="0" step="0.01">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="editCategory" class="form-label">Categoría</label>
+              <select class="form-select" id="editCategory">
+                <option value="Comida">🍔 Comida</option>
+                <option value="Transporte">🚌 Transporte</option>
+                <option value="Ocio">🎬 Ocio</option>
+                <option value="Salud">💊 Salud</option>
+                <option value="Otros">📦 Otros</option>
+              </select>
+            </div>
+            <div class="mb-0">
+              <label for="editDate" class="form-label">Fecha</label>
+              <input type="date" class="form-control" id="editDate">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn ef-btn-primary" id="saveEditBtn">Guardar Cambios</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: ELIMINAR GASTO (RF-4) ===== -->
+  <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteModalLabel"><i class="bi bi-exclamation-triangle text-danger me-2"></i>Eliminar Gasto</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0">¿Seguro que deseas eliminar <strong id="deleteItemName">este gasto</strong>? Esta acción no se puede deshacer.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger" id="confirmDeleteBtn"><i class="bi bi-trash me-1"></i>Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TOAST DE RETROALIMENTACIÓN ===== -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="feedbackToast" class="toast align-items-center text-white ef-toast border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body" id="feedbackToastBody">Acción realizada.</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <!-- App -->
+  <script src="js/app.js"></script>
+</body>
+</html>

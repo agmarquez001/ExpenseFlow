@@ -1,0 +1,203 @@
+/* =========================================================
+   ExpenseFlow — Fase 2: Maquetación
+   Paleta: azul #2196F3 (primario) · verde #4CAF50 (acento)
+   ========================================================= */
+
+:root {
+  --ef-primary: #2196F3;
+  --ef-primary-dark: #1976D2;
+  --ef-accent: #4CAF50;
+  --ef-accent-dark: #388E3C;
+  --ef-bg: #F4F7FB;
+  --ef-card-radius: 0.75rem;
+}
+
+body {
+  background-color: var(--ef-bg);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: #1f2937;
+  overflow-x: hidden;
+}
+
+/* ===== Navbar ===== */
+.ef-navbar {
+  background: linear-gradient(90deg, var(--ef-primary) 0%, var(--ef-primary-dark) 100%);
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.25);
+}
+
+.ef-navbar .nav-link {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.ef-navbar .nav-link.active,
+.ef-navbar .nav-link:hover {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* ===== Tarjetas ===== */
+.card {
+  border: none;
+  border-radius: var(--ef-card-radius);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.ef-card-header {
+  background-color: var(--ef-primary);
+  color: #fff;
+  font-weight: 600;
+  border-radius: var(--ef-card-radius) var(--ef-card-radius) 0 0 !important;
+}
+
+/* ===== Tarjetas de resumen ===== */
+.ef-summary-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Evita overflow horizontal: los flex items no deben quedarse con min-width:auto */
+.ef-summary-card .card-body > .d-flex > div:first-child {
+  min-width: 0;
+}
+
+.ef-summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.ef-summary-label {
+  font-size: 0.78rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.25rem;
+}
+
+.ef-summary-value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 0;
+  color: #1f2937;
+}
+
+.ef-icon-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* ===== Botones ===== */
+.ef-btn-primary {
+  background-color: var(--ef-accent);
+  border-color: var(--ef-accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.ef-btn-primary:hover,
+.ef-btn-primary:focus {
+  background-color: var(--ef-accent-dark);
+  border-color: var(--ef-accent-dark);
+  color: #fff;
+}
+
+.ef-action-btn {
+  border-radius: 0.4rem;
+}
+
+#statusFilter .btn.active {
+  background-color: #ffffff;
+  color: var(--ef-primary-dark);
+  font-weight: 600;
+}
+
+/* ===== Badges de categoría ===== */
+.badge {
+  font-weight: 500;
+  padding: 0.4em 0.65em;
+}
+
+.ef-badge-comida     { background-color: #FFF3E0; color: #E65100; }
+.ef-badge-transporte { background-color: #E3F2FD; color: #1565C0; }
+.ef-badge-ocio       { background-color: #F3E5F5; color: #7B1FA2; }
+.ef-badge-salud      { background-color: #FFEBEE; color: #C62828; }
+.ef-badge-otros      { background-color: #ECEFF1; color: #37474F; }
+
+.ef-dot {
+  font-size: 0.55rem;
+  margin-right: 0.35rem;
+  vertical-align: middle;
+}
+
+/* ===== Barras de progreso ===== */
+.progress {
+  height: 0.6rem;
+  border-radius: 1rem;
+  background-color: #E9ECEF;
+}
+
+.progress-bar {
+  border-radius: 1rem;
+}
+
+/* ===== Gráficas ===== */
+.ef-chart-container {
+  position: relative;
+  height: 280px;
+}
+
+/* ===== Toast ===== */
+.ef-toast {
+  background-color: var(--ef-accent);
+}
+
+/* ===== Tabla ===== */
+#expenseTable thead th {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #6b7280;
+  border-bottom-width: 2px;
+  white-space: nowrap;
+}
+
+#expenseTable tbody tr {
+  animation: ef-fade-in 0.25s ease;
+}
+
+@keyframes ef-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================================
+   Responsivo — breakpoints clave: 375px / 768px / 1920px
+   ========================================================= */
+
+/* Móvil pequeño */
+@media (max-width: 575.98px) {
+  .ef-summary-value { font-size: 1.1rem; }
+  .ef-summary-label { font-size: 0.7rem; }
+  .ef-icon-badge { width: 34px; height: 34px; font-size: 0.95rem; }
+  .ef-chart-container { height: 220px; }
+  #statusFilter .btn { font-size: 0.72rem; padding: 0.3rem 0.5rem; }
+  .card-header.ef-card-header { font-size: 0.95rem; }
+}
+
+/* Tablet */
+@media (min-width: 576px) and (max-width: 991.98px) {
+  .ef-chart-container { height: 250px; }
+}
+
+/* Escritorio grande */
+@media (min-width: 1400px) {
+  main.container-fluid {
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+  .ef-chart-container { height: 320px; }
+}
