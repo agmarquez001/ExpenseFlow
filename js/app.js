@@ -1,11 +1,13 @@
 /* =========================================================
-   ExpenseFlow — Fase 2: Maquetación
-   Datos ESTÁTICOS de ejemplo. Sin integración de API/localStorage
-   (persistencia real y CRUD completo quedan para Fase 3).
+   ExpenseFlow — Fase 3: Integración de API RESTful y Persistencia
    ========================================================= */
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  const API_URL = 'https://open.er-api.com/v6/latest/MXN'; // API RESTful pública
+  let exchangeRates = { USD: 0.05, EUR: 0.045 }; // Valores fallback en caso de falla
+  
+  // Categorías y colores
   const CATEGORY_COLORS = {
     Comida: '#FF9800',
     Transporte: '#2196F3',
@@ -30,220 +32,152 @@ document.addEventListener('DOMContentLoaded', () => {
     Otros: 'ef-badge-otros'
   };
 
-  /* ---------- RF-6: Gráfica de pastel — gastos por categoría ---------- */
-  const categoryData = {
-    labels: ['Comida', 'Transporte', 'Ocio', 'Salud', 'Otros'],
-    values: [1365, 720, 479, 680, 95]
-  };
+  // 1. Cargar datos desde LocalStorage o usar valores iniciales
+  let expenses = JSON.parse(localStorage.getItem('ef_expenses')) || [
+    { id: 1, desc: 'Supermercado semanal', amount: 850.00, category: 'Comida', date: '2026-09-08', status: 'completada' },
+    { id: 2, desc: 'Uber al trabajo', amount: 120.00, category: 'Transporte', date: '2026-09-07', status: 'completada' },
+    { id: 3, desc: 'Cine con amigos', amount: 280.00, category: 'Ocio', date: '2026-09-07', status: 'completada' },
+    { id: 4, desc: 'Consulta médica', amount: 500.00, category: 'Salud', date: '2026-09-06', status: 'pendiente' },
+    { id: 5, desc: 'Gasolina', amount: 600.00, category: 'Transporte', date: '2026-09-05', status: 'completada' }
+  ];
 
-  const categoryCtx = document.getElementById('categoryChart');
-  if (categoryCtx && window.Chart) {
-    new Chart(categoryCtx, {
-      type: 'doughnut',
-      data: {
-        labels: categoryData.labels,
-        datasets: [{
-          data: categoryData.values,
-          backgroundColor: categoryData.labels.map(l => CATEGORY_COLORS[l]),
-          borderWidth: 2,
-          borderColor: '#ffffff'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 12, padding: 14 } },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => ` ${ctx.label}: $${ctx.parsed.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`
-            }
-          }
-        },
-        cutout: '60%'
-      }
-    });
+  let categoryChartInstance = null;
+
+  // 2. Consumo de API RESTful mediante Fetch API
+  async function fetchExchangeRates() {
+    try {
+      const response = await fetch(API_URL);
+      if (!response.ok) throw new Error('Error al conectar con la API');
+      const data = await response.json();
+      exchangeRates.USD = data.rates.USD;
+      exchangeRates.EUR = data.rates.EUR;
+      showFeedback('API RESTful conectada: Tipos de cambio actualizados.');
+    } catch (error) {
+      console.warn('Uso de valores de respaldo por error en API:', error);
+    }
   }
 
-  /* ---------- RF-7: Gráfica de barras — gastos por día ---------- */
-  const dailyData = {
-    labels: ['02 Sep', '03 Sep', '04 Sep', '05 Sep', '06 Sep', '07 Sep', '08 Sep'],
-    values: [180, 199, 450, 600, 500, 400, 850]
-  };
-
-  const dailyCtx = document.getElementById('dailyChart');
-  if (dailyCtx && window.Chart) {
-    new Chart(dailyCtx, {
-      type: 'bar',
-      data: {
-        labels: dailyData.labels,
-        datasets: [{
-          label: 'Gasto diario',
-          data: dailyData.values,
-          backgroundColor: '#2196F3',
-          borderRadius: 6,
-          maxBarThickness: 40
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => ` $${ctx.parsed.y.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`
-            }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { callback: (v) => '$' + v }
-          }
-        }
-      }
-    });
+  // Guardar en LocalStorage
+  function saveToStorage() {
+    localStorage.setItem('ef_expenses', JSON.stringify(expenses));
+    renderAll();
   }
 
-  /* ---------- Toast de retroalimentación visual ---------- */
-  const toastEl = document.getElementById('feedbackToast');
-  const toastBody = document.getElementById('feedbackToastBody');
-  const toast = toastEl ? new bootstrap.Toast(toastEl, { delay: 2500 }) : null;
-
-  function showFeedback(message) {
-    if (!toast) return;
-    toastBody.textContent = message;
-    toast.show();
+  // 3. Renderizado general de la interfaz
+  function renderAll() {
+    renderTable();
+    updateSummary();
+    renderCharts();
   }
 
-  /* ---------- RF-5: Filtro por estado (Todas / Completadas / Pendientes) ---------- */
-  const filterButtons = document.querySelectorAll('#statusFilter [data-filter]');
-  const tableRows = () => document.querySelectorAll('#expenseTable tbody tr');
-  const emptyState = document.getElementById('emptyState');
+  // Renderizar la tabla con filtros
+  function renderTable() {
+    const tbody = document.querySelector('#expenseTable tbody');
+    const emptyState = document.getElementById('emptyState');
+    if (!tbody) return;
 
-  function applyFilter(filter) {
+    tbody.innerHTML = '';
+    const activeFilter = document.querySelector('#statusFilter .active')?.dataset.filter || 'todas';
+
     let visibleCount = 0;
-    tableRows().forEach(row => {
-      const matches = filter === 'todas' || row.dataset.status === filter;
-      row.classList.toggle('d-none', !matches);
+    expenses.forEach(exp => {
+      const matches = activeFilter === 'todas' || exp.status === activeFilter;
       if (matches) visibleCount++;
+
+      const [y, m, d] = exp.date.split('-');
+      const tr = document.createElement('tr');
+      if (!matches) tr.classList.add('d-none');
+
+      tr.innerHTML = `
+        <td>${d}/${m}/${y}</td>
+        <td>${exp.desc}</td>
+        <td class="d-none d-md-table-cell"><span class="badge ${CATEGORY_BADGE_CLASS[exp.category]}">${CATEGORY_ICONS[exp.category]} ${exp.category}</span></td>
+        <td class="fw-semibold">$${parseFloat(exp.amount).toFixed(2)} MXN</td>
+        <td class="d-none d-sm-table-cell">
+          <span class="badge ${exp.status === 'completada' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'}">
+            ${exp.status.charAt(0).toUpperCase() + exp.status.slice(1)}
+          </span>
+        </td>
+        <td class="text-end">
+          <button class="btn btn-sm btn-outline-danger ef-action-btn" onclick="deleteExpense(${exp.id})" title="Eliminar"><i class="bi bi-trash"></i></button>
+        </td>
+      `;
+      tbody.appendChild(tr);
     });
+
     if (emptyState) emptyState.classList.toggle('d-none', visibleCount > 0);
   }
 
-  filterButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      filterButtons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      applyFilter(btn.dataset.filter);
-    });
-  });
+  // Actualizar tarjetas de resumen con la conversión de la API
+  function updateSummary() {
+    const total = expenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0);
+    const totalInUSD = (total * exchangeRates.USD).toFixed(2);
 
-  /* ---------- RF-4: Editar gasto (modal) ---------- */
-  const editModalEl = document.getElementById('editModal');
-  let editingRow = null;
-
-  editModalEl.addEventListener('show.bs.modal', (event) => {
-    const triggerBtn = event.relatedTarget;
-    editingRow = triggerBtn ? triggerBtn.closest('tr') : null;
-    if (!editingRow) return;
-
-    document.getElementById('editDesc').value = editingRow.dataset.desc;
-    document.getElementById('editAmount').value = editingRow.dataset.amount;
-    document.getElementById('editCategory').value = editingRow.dataset.category;
-    document.getElementById('editDate').value = editingRow.dataset.date;
-  });
-
-  document.getElementById('saveEditBtn').addEventListener('click', () => {
-    if (!editingRow) return;
-
-    const desc = document.getElementById('editDesc').value.trim();
-    const amount = parseFloat(document.getElementById('editAmount').value || 0);
-    const category = document.getElementById('editCategory').value;
-    const dateVal = document.getElementById('editDate').value;
-
-    if (!desc || !dateVal) return;
-
-    const [y, m, d] = dateVal.split('-');
-    editingRow.dataset.desc = desc;
-    editingRow.dataset.amount = amount.toFixed(2);
-    editingRow.dataset.category = category;
-    editingRow.dataset.date = dateVal;
-
-    editingRow.children[0].textContent = `${d}/${m}/${y}`;
-    editingRow.children[1].textContent = desc;
-    editingRow.children[2].innerHTML = `<span class="badge ${CATEGORY_BADGE_CLASS[category]}">${CATEGORY_ICONS[category]} ${category}</span>`;
-    editingRow.children[3].textContent = `$${amount.toFixed(2)}`;
-
-    bootstrap.Modal.getInstance(editModalEl).hide();
-    showFeedback('Gasto actualizado (vista previa — la persistencia se implementará en Fase 3).');
-  });
-
-  /* ---------- RF-4: Eliminar gasto (modal de confirmación) ---------- */
-  const deleteModalEl = document.getElementById('deleteModal');
-  const deleteItemName = document.getElementById('deleteItemName');
-  let deletingRow = null;
-
-  deleteModalEl.addEventListener('show.bs.modal', (event) => {
-    const triggerBtn = event.relatedTarget;
-    deletingRow = triggerBtn ? triggerBtn.closest('tr') : null;
-    deleteItemName.textContent = deletingRow ? `"${deletingRow.dataset.desc}"` : 'este gasto';
-  });
-
-  document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
-    if (!deletingRow) return;
-    deletingRow.remove();
-    bootstrap.Modal.getInstance(deleteModalEl).hide();
-    showFeedback('Gasto eliminado (vista previa — la persistencia se implementará en Fase 3).');
-    if (document.querySelectorAll('#expenseTable tbody tr').length === 0 && emptyState) {
-      emptyState.classList.remove('d-none');
+    const totalEl = document.querySelector('.ef-summary-value');
+    if (totalEl) {
+      totalEl.innerHTML = `$${total.toLocaleString('es-MX', {minimumFractionDigits: 2})} <small class="text-muted fs-6">($${totalInUSD} USD)</small>`;
     }
-  });
+  }
 
-  /* ---------- RF-1: Nuevo gasto (inserción visual en la tabla) ---------- */
-  document.getElementById('expenseForm').addEventListener('submit', (e) => {
+  // Renderizar gráfica con Chart.js
+  function renderCharts() {
+    const categories = ['Comida', 'Transporte', 'Ocio', 'Salud', 'Otros'];
+    const totalsByCategory = categories.map(cat => 
+      expenses.filter(e => e.category === cat).reduce((sum, e) => sum + parseFloat(e.amount), 0)
+    );
+
+    const catCtx = document.getElementById('categoryChart');
+    if (catCtx && window.Chart) {
+      if (categoryChartInstance) categoryChartInstance.destroy();
+      categoryChartInstance = new Chart(catCtx, {
+        type: 'doughnut',
+        data: {
+          labels: categories,
+          datasets: [{
+            data: totalsByCategory,
+            backgroundColor: categories.map(c => CATEGORY_COLORS[c]),
+            borderWidth: 2
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '60%' }
+      });
+    }
+  }
+
+  // Operación para eliminar gasto
+  window.deleteExpense = function(id) {
+    expenses = expenses.filter(e => e.id !== id);
+    saveToStorage();
+    showFeedback('Gasto eliminado dinámicamente.');
+  };
+
+  // Registro de nuevo gasto desde el formulario
+  document.getElementById('expenseForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
-
     const desc = document.getElementById('expDesc').value.trim();
     const amount = parseFloat(document.getElementById('expAmount').value || 0);
     const category = document.getElementById('expCategory').value;
-    const dateVal = document.getElementById('expDate').value;
+    const date = document.getElementById('expDate').value;
 
-    if (!desc || !dateVal || amount <= 0) return;
+    if (!desc || amount <= 0 || !date) return;
 
-    const [y, m, d] = dateVal.split('-');
-    const tbody = document.querySelector('#expenseTable tbody');
-    const newRow = document.createElement('tr');
-    newRow.dataset.status = 'pendiente';
-    newRow.dataset.desc = desc;
-    newRow.dataset.amount = amount.toFixed(2);
-    newRow.dataset.category = category;
-    newRow.dataset.date = dateVal;
-
-    newRow.innerHTML = `
-      <td>${d}/${m}/${y}</td>
-      <td>${desc}</td>
-      <td class="d-none d-md-table-cell"><span class="badge ${CATEGORY_BADGE_CLASS[category]}">${CATEGORY_ICONS[category]} ${category}</span></td>
-      <td class="fw-semibold">$${amount.toFixed(2)}</td>
-      <td class="d-none d-sm-table-cell"><span class="badge bg-warning-subtle text-warning">Pendiente</span></td>
-      <td class="text-end">
-        <button class="btn btn-sm btn-outline-primary ef-action-btn" data-bs-toggle="modal" data-bs-target="#editModal" title="Editar"><i class="bi bi-pencil"></i></button>
-        <button class="btn btn-sm btn-outline-danger ef-action-btn" data-bs-toggle="modal" data-bs-target="#deleteModal" title="Eliminar"><i class="bi bi-trash"></i></button>
-      </td>
-    `;
-
-    tbody.prepend(newRow);
-    if (emptyState) emptyState.classList.add('d-none');
-
-    const activeFilter = document.querySelector('#statusFilter .active')?.dataset.filter || 'todas';
-    if (activeFilter !== 'todas' && activeFilter !== 'pendiente') {
-      newRow.classList.add('d-none');
-    }
-
+    const newExp = { id: Date.now(), desc, amount, category, date, status: 'pendiente' };
+    expenses.unshift(newExp);
+    saveToStorage();
     e.target.reset();
-    document.getElementById('expDate').value = '2026-09-08';
-    showFeedback('Gasto agregado (vista previa — el guardado permanente llegará en Fase 3).');
+    showFeedback('Nuevo gasto registrado exitosamente.');
   });
 
+  // Mostrar mensaje emergente Toast
+  function showFeedback(msg) {
+    const toastEl = document.getElementById('feedbackToast');
+    const toastBody = document.getElementById('feedbackToastBody');
+    if (toastEl && toastBody) {
+      toastBody.textContent = msg;
+      new bootstrap.Toast(toastEl, { delay: 2500 }).show();
+    }
+  }
+
+  // Inicialización
+  fetchExchangeRates().then(() => renderAll());
 });
